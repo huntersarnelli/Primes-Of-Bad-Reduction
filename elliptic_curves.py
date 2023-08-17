@@ -10,6 +10,19 @@ def compute_curve_invariants(args):
     #rank = E.rank()
     torsion_order = E.torsion_order()
     conductor = E.conductor()
+    prime_factors_conductor = factor(conductor)
+    
+    
+    segregated_primes = {}
+    for prime, exponent in prime_factors_conductor:
+        digit_count = len(str(prime))
+        if digit_count not in segregated_primes:
+            segregated_primes[digit_count] = []
+        segregated_primes[digit_count].append((prime, exponent))
+        
+        
+        
+    num_p_f = len(prime_factors_conductor)
     delta = E.discriminant()
     equation = E.ainvs()
     eqn_str = "y^2 = x^3 + {}*x + {}".format(equation[3], equation[4])
@@ -17,7 +30,7 @@ def compute_curve_invariants(args):
     L = E.period_lattice()
     omega_0, omega_1 = L.basis()
 
-    return E, j, rank, torsion_order, conductor, delta, omega_0, omega_1,eqn_str, A, B
+    return E, j, rank, torsion_order, conductor, delta, omega_0, omega_1,eqn_str, A, B, prime_factors_conductor,num_p_f,segregated_primes
 
 
 
@@ -33,6 +46,9 @@ def generate_elliptic_curves(a_range, b_range, num_curves):
     eqn_strs = []
     AL =[]
     BL = []
+    bad_red = []
+    number = []
+    seg_primes = []
     
     tasks = []
     while len(tasks) < num_curves:
@@ -60,14 +76,17 @@ def generate_elliptic_curves(a_range, b_range, num_curves):
         eqn_strs.append(res[8])
         AL.append(res[9])
         BL.append(res[10])
+        bad_red.append(res[11])
+        number.append(res[12])
+        seg_primes.append(res[13])
     
-    combined = list(zip(eqn_strs,j_invarient,tor_order,conductors,discrim,omega0L,omega1L,AL,BL))
+    combined = list(zip(eqn_strs,j_invarient,tor_order,conductors,discrim,omega0L,omega1L,AL,BL,bad_red,number,seg_primes))
     
     
 
     with open('Eliptic_curves.csv', 'wb') as file:
         writer = csv.writer(file)
-        writer.writerow(["eqn_strs", "j_invarient", "tor_order","conductors","discrim","omega0L","omega1L","A Coefficient","B Coefficient"])  # Writing headers
+        writer.writerow(["eqn_strs", "j_invarient", "tor_order","conductors","discrim","omega0L","omega1L","A Coefficient","B Coefficient","bad_red","number of bad primes","seg_primes"])  # Writing headers
         writer.writerows(combined)
         
     with open('Eliptic_curves.csv', 'rb') as file:  # 'rb' for reading in binary mode in Python 2
@@ -75,13 +94,13 @@ def generate_elliptic_curves(a_range, b_range, num_curves):
     #print(content)
 
 
-    return content,curves, j_invarient, tor_order,conductors,discrim,omega0L,omega1L,eqn_strs,A,B
+    return content,curves, j_invarient, tor_order,conductors,discrim,omega0L,omega1L,eqn_strs,A,B,bad_red,number
 
 
 # Example of usage
-a_range = (0, 50)
-b_range = (0, 50)
-num_curves = 100
-content, curves, j_invarient, tor_order,conductors,discrim,omega0L,omega1L,eqn_strs,A,B = generate_elliptic_curves(a_range, b_range, num_curves)
+a_range = (-50, 50)
+b_range = (-50, 50)
+num_curves = 1000
+content, curves, j_invarient, tor_order,conductors,discrim,omega0L,omega1L,eqn_strs,A,B,bad_red,number_seg_primes = generate_elliptic_curves(a_range, b_range, num_curves)
 
 print(content)
